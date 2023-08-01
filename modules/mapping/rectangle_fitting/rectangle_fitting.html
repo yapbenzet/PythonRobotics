@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Object shape recognition using rectangle fitting &mdash; PythonRobotics  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/dark_mode_css/general.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/dark_mode_css/dark.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/clipboard.min.js"></script>
+        <script src="../../../_static/copybutton.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script src="../../../_static/dark_mode_js/default_dark.js"></script>
+        <script src="../../../_static/dark_mode_js/theme_switcher.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Normal vector estimation" href="../normal_vector_estimation/normal_vector_estimation.html" />
+    <link rel="prev" title="Object shape recognition using circle fitting" href="../circle_fitting/circle_fitting.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+            <a href="../../../index.html" class="icon icon-home"> PythonRobotics
+            <img src="../../../_static/icon.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9612347954373886"
+     crossorigin="anonymous"></script>
+<!-- PythonRoboticsDoc -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-9612347954373886"
+     data-ad-slot="1579532132"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../localization/localization.html">Localization</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../mapping.html">Mapping</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../gaussian_grid_map/gaussian_grid_map.html">Gaussian grid map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ndt_map/ndt_map.html">Normal Distance Transform (NDT) map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ray_casting_grid_map/ray_casting_grid_map.html">Ray casting grid map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../lidar_to_grid_map_tutorial/lidar_to_grid_map_tutorial.html">Lidar to grid map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_cloud_sampling/point_cloud_sampling.html">Point cloud Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../k_means_object_clustering/k_means_object_clustering.html">k-means object clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../circle_fitting/circle_fitting.html">Object shape recognition using circle fitting</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Object shape recognition using rectangle fitting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step1-adaptive-range-segmentation">Step1: Adaptive range segmentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step2-rectangle-search">Step2: Rectangle search</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#rectangle-area-minimization-criteria">1. Rectangle Area Minimization criteria</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#closeness-criteria">2. Closeness criteria</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#variance-criteria">3. Variance criteria</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#api">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../normal_vector_estimation/normal_vector_estimation.html">Normal vector estimation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../slam/slam.html">SLAM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../path_planning/path_planning.html">Path Planning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../path_tracking/path_tracking.html">Path Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../arm_navigation/arm_navigation.html">Arm Navigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../aerial_navigation/aerial_navigation.html">Aerial Navigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bipedal/bipedal.html">Bipedal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../control/control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils/utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../appendix/appendix.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to_contribute.html">How To Contribute</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PythonRobotics</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../mapping.html">Mapping</a> &raquo;</li>
+      <li>Object shape recognition using rectangle fitting</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/AtsushiSakai/PythonRobotics/blob/master/docs/modules/mapping/rectangle_fitting/rectangle_fitting_main.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="object-shape-recognition-using-rectangle-fitting">
+<h1>Object shape recognition using rectangle fitting<a class="headerlink" href="#object-shape-recognition-using-rectangle-fitting" title="Permalink to this headline"></a></h1>
+<p>This is an object shape recognition using rectangle fitting.</p>
+<img alt="https://github.com/AtsushiSakai/PythonRoboticsGifs/raw/master/Mapping/rectangle_fitting/animation.gif" src="https://github.com/AtsushiSakai/PythonRoboticsGifs/raw/master/Mapping/rectangle_fitting/animation.gif" />
+<p>This example code is based on this paper algorithm:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.ri.cmu.edu/publications/efficient-l-shape-fitting-for-vehicle-detection-using-laser-scanners">Efficient L-Shape Fitting for Vehicle Detection Using Laser Scanners - The Robotics Institute Carnegie Mellon University</a></p></li>
+</ul>
+<p>The algorithm consists of 2 steps as below.</p>
+<section id="step1-adaptive-range-segmentation">
+<h2>Step1: Adaptive range segmentation<a class="headerlink" href="#step1-adaptive-range-segmentation" title="Permalink to this headline"></a></h2>
+<p>In the first step, all range data points are segmented into some clusters.</p>
+<p>We calculate the distance between each range data and the nearest range data, and if this distance is below a certain threshold, it is judged to be in the same cluster.
+This distance threshold is determined in proportion to the distance from the sensor.
+This is taking advantage of the general model of distance sensors, which tends to have sparser data distribution as the distance from the sensor increases.</p>
+<p>The threshold range is calculated by:</p>
+<div class="math notranslate nohighlight">
+\[r_{th} = R_0 + R_d * r_{origin}\]</div>
+<p>where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(r_{th}\)</span>: Threashold range</p></li>
+<li><p><span class="math notranslate nohighlight">\(R_0, R_d\)</span>: Constant parameters</p></li>
+<li><p><span class="math notranslate nohighlight">\(r_{origin}\)</span>: Distance from the sensor for a range data.</p></li>
+</ul>
+</section>
+<section id="step2-rectangle-search">
+<h2>Step2: Rectangle search<a class="headerlink" href="#step2-rectangle-search" title="Permalink to this headline"></a></h2>
+<p>In the second step, for each cluster calculated in the previous step, rectangular fittings will be applied.
+In this rectangular fitting, each cluster’s distance data is rotated at certain angle intervals.
+It is evaluated by one of the three evaluation functions below, then best angle parameter one is selected as the rectangle shape.</p>
+<section id="rectangle-area-minimization-criteria">
+<h3>1. Rectangle Area Minimization criteria<a class="headerlink" href="#rectangle-area-minimization-criteria" title="Permalink to this headline"></a></h3>
+<p>This evaluation function calculates the area of the smallest rectangle that includes all the points, derived from the difference between the maximum and minimum values on the x-y axis for all distance data points.
+This allows for fitting a rectangle in a direction that encompasses as much of the smallest rectangular shape as possible.</p>
+</section>
+<section id="closeness-criteria">
+<h3>2. Closeness criteria<a class="headerlink" href="#closeness-criteria" title="Permalink to this headline"></a></h3>
+<p>This evaluation function uses the distances between the top and bottom vertices on the right side of the rectangle and each point in the distance data as evaluation values.
+If there are points on the rectangle edges, this evaluation value decreases.</p>
+</section>
+<section id="variance-criteria">
+<h3>3. Variance criteria<a class="headerlink" href="#variance-criteria" title="Permalink to this headline"></a></h3>
+<p>This evaluation function uses the squreed distances between the edges of the rectangle (horizontal and vertical) and each point.
+Calculating the squared error is the same as calculating the variance.
+The smaller this variance, the more it signifies that the points fit within the rectangle.</p>
+</section>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mapping.rectangle_fitting.rectangle_fitting.</span></span><span class="sig-name descname"><span class="pre">LShapeFitting</span></span><a class="reference internal" href="../../../_modules/Mapping/rectangle_fitting/rectangle_fitting.html#LShapeFitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting" title="Permalink to this definition"></a></dt>
+<dd><p>LShapeFitting class. You can use this class by initializing the class and
+changing the parameters, and then calling the fitting method.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.Criteria">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Criteria</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/Mapping/rectangle_fitting/rectangle_fitting.html#LShapeFitting.Criteria"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.Criteria" title="Permalink to this definition"></a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.R0">
+<span class="sig-name descname"><span class="pre">R0</span></span><a class="headerlink" href="#Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.R0" title="Permalink to this definition"></a></dt>
+<dd><p>Range segmentation parameter [m]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.Rd">
+<span class="sig-name descname"><span class="pre">Rd</span></span><a class="headerlink" href="#Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.Rd" title="Permalink to this definition"></a></dt>
+<dd><p>Range segmentation parameter [m]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.criteria">
+<span class="sig-name descname"><span class="pre">criteria</span></span><a class="headerlink" href="#Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.criteria" title="Permalink to this definition"></a></dt>
+<dd><p>Fitting criteria parameter</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.d_theta_deg_for_search">
+<span class="sig-name descname"><span class="pre">d_theta_deg_for_search</span></span><a class="headerlink" href="#Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.d_theta_deg_for_search" title="Permalink to this definition"></a></dt>
+<dd><p>Angle difference parameter [deg]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.fitting">
+<span class="sig-name descname"><span class="pre">fitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/Mapping/rectangle_fitting/rectangle_fitting.html#LShapeFitting.fitting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.fitting" title="Permalink to this definition"></a></dt>
+<dd><p>Fitting L-shape model to object points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ox</strong> (<em>x positions of range points from an object</em>) – </p></li>
+<li><p><strong>oy</strong> (<em>y positions of range points from an object</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rects</strong> (<em>Fitting rectangles</em>)</p></li>
+<li><p><strong>id_sets</strong> (<em>id sets of each cluster</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.min_dist_of_closeness_criteria">
+<span class="sig-name descname"><span class="pre">min_dist_of_closeness_criteria</span></span><a class="headerlink" href="#Mapping.rectangle_fitting.rectangle_fitting.LShapeFitting.min_dist_of_closeness_criteria" title="Permalink to this definition"></a></dt>
+<dd><p>Minimum distance for closeness criteria parameter [m]</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.ri.cmu.edu/publications/efficient-l-shape-fitting-for-vehicle-detection-using-laser-scanners">Efficient L-Shape Fitting for Vehicle Detection Using Laser Scanners - The Robotics Institute Carnegie Mellon University</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../circle_fitting/circle_fitting.html" class="btn btn-neutral float-left" title="Object shape recognition using circle fitting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../normal_vector_estimation/normal_vector_estimation.html" class="btn btn-neutral float-right" title="Normal vector estimation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018-2021, Atsushi Sakai.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
